@@ -35,10 +35,11 @@ async def scrape(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 def main():
     threading.Thread(target=lambda: app.run(host='0.0.0.0', port=8000, debug=False, use_reloader=False)).start()
-    bot_app = Application.builder().token(TELEGRAM_TOKEN).build()
+    
+    bot_app = Application.builder().token(TELEGRAM_TOKEN).connect_timeout(60).read_timeout(60).build()
     bot_app.add_handler(CommandHandler("start", start))
     bot_app.add_handler(CommandHandler("scrape", scrape))
-    print("Bot started...")
+    print("Bot started with 60s timeout...")
     bot_app.run_polling()
 
 if __name__ == "__main__":
