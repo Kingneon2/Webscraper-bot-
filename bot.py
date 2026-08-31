@@ -17,7 +17,7 @@ def health():
     return "Bot is running!", 200
 
 # --- Telegram setup ---
-TELEGRAM_TOKEN = os.environ.get("8696552585:AAHAtPXFCd0WW8tcED1sMuO4wwXCDw0wBHw")
+TELEGRAM_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN")
 if not TELEGRAM_TOKEN:
     raise ValueError("TELEGRAM_BOT_TOKEN not set")
 
