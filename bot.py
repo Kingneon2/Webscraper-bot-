@@ -1,4 +1,5 @@
 import os
+import asyncio
 import threading
 import requests
 from bs4 import BeautifulSoup
@@ -107,7 +108,7 @@ bot_app.add_handler(CommandHandler("scrape", scrape))
 
 # --- Main ---
 def main():
-    # Start Flask in background thread
+    # Start Flask in a background thread
     def run_flask():
         app.run(host='0.0.0.0', port=PORT, debug=False, use_reloader=False)
 
@@ -115,9 +116,17 @@ def main():
     flask_thread.start()
     print(f"🚀 Flask running on port {PORT}")
 
-    # Start bot polling
-    print("🤖 Bot started polling...")
-    bot_app.run_polling(drop_pending_updates=True)
+    # --- FIX: Use asyncio.run() properly ---
+    async def start_bot():
+        print("🤖 Bot starting polling...")
+        await bot_app.initialize()
+        await bot_app.start()
+        await bot_app.run_polling(drop_pending_updates=True)
+
+    try:
+        asyncio.run(start_bot())
+    except KeyboardInterrupt:
+        print("Bot stopped by user")
 
 if __name__ == "__main__":
     main()
