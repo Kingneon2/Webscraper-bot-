@@ -8,7 +8,7 @@ from flask import Flask
 from telegram import Update
 from telegram.ext import Application, CommandHandler, ContextTypes
 
-# --- Flask app (keep Render alive) ---
+# --- Flask app ---
 app = Flask(__name__)
 PORT = int(os.environ.get("PORT", 10000))
 
@@ -21,7 +21,6 @@ TELEGRAM_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN")
 if not TELEGRAM_TOKEN:
     raise ValueError("TELEGRAM_BOT_TOKEN not set")
 
-# --- Bot application ---
 bot_app = Application.builder().token(TELEGRAM_TOKEN).build()
 
 # --- Handlers ---
@@ -116,17 +115,9 @@ def main():
     flask_thread.start()
     print(f"🚀 Flask running on port {PORT}")
 
-    # --- FIX: Use asyncio.run() properly ---
-    async def start_bot():
-        print("🤖 Bot starting polling...")
-        await bot_app.initialize()
-        await bot_app.start()
-        await bot_app.run_polling(drop_pending_updates=True)
-
-    try:
-        asyncio.run(start_bot())
-    except KeyboardInterrupt:
-        print("Bot stopped by user")
+    # Start bot polling
+    print("🤖 Bot started polling...")
+    bot_app.run_polling(drop_pending_updates=True)
 
 if __name__ == "__main__":
     main()
