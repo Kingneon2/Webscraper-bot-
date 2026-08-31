@@ -6,14 +6,14 @@ from flask import Flask
 from telegram import Update
 from telegram.ext import Application, CommandHandler, ContextTypes
 
-# --- Flask for health check ---
+# --- Flask app ---
 app = Flask(__name__)
 
 @app.route('/')
 def health():
     return "Bot is running!", 200
 
-# --- Telegram bot ---
+# --- Telegram bot setup ---
 TELEGRAM_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN")
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -33,17 +33,17 @@ async def scrape(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except Exception as e:
         await update.message.reply_text(f"Error: {str(e)[:200]}")
 
-def main():
-    # Start Flask in background thread (for Render health check)
-    threading.Thread(target=lambda: app.run(host='0.0.0.0', port=8000, debug=False, use_reloader=False)).start()
-    
-    # Build bot application
-    bot_app = Application.builder().token(TELEGRAM_TOKEN).connect_timeout(60).read_timeout(60).build()
-    bot_app.add_handler(CommandHandler("start", start))
-    bot_app.add_handler(CommandHandler("scrape", scrape))
-    
+# --- Build bot application ---
+bot_app = Application.builder().token(TELEGRAM_TOKEN).connect_timeout(60).read_timeout(60).build()
+bot_app.add_handler(CommandHandler("start", start))
+bot_app.add_handler(CommandHandler("scrape", scrape))
+
+# --- Start bot in background thread when Flask starts ---
+def start_bot():
     print("Bot started. Polling for updates...")
     bot_app.run_polling()
 
-if __name__ == "__main__":
-    main()
+# Gunicorn will run this when it loads the app
+threading.Thread(target=start_bot, daemon=True).start()
+
+# Flask app is the main entry point for Gunicorn
